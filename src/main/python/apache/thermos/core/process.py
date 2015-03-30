@@ -27,6 +27,7 @@ import signal
 import subprocess
 import sys
 import time
+import socket
 from abc import abstractmethod
 
 from twitter.common import log
@@ -67,7 +68,7 @@ class ProcessBase(object):
   CONTROL_WAIT_CHECK_INTERVAL = Amount(100, Time.MILLISECONDS)
   MAXIMUM_CONTROL_WAIT = Amount(1, Time.MINUTES)
 
-  def __init__(self, name, cmdline, sequence, pathspec, sandbox_dir, user=None, platform=None):
+  def __init__(self, name, cmdline, sequence, pathspec, sandbox_dir, user=None, platform=None, statsd=None):
     """
       required:
         name        = name of the process
@@ -80,6 +81,8 @@ class ProcessBase(object):
       optional:
         user        = the user to run as (if unspecified, will default to current user.)
                       if specified to a user that is not the current user, you must have root access
+        statsd      = the statsd (UDP) end-point to send child state transitions.  The format is
+                      "hostname:port" (string), defaults to None (disabled)
     """
     self._name = name
     self._cmdline = cmdline
@@ -98,9 +101,14 @@ class ProcessBase(object):
     if platform is None:
       raise ValueError("Platform must be specified")
     self._platform = platform
+    self._statsd = statsd
 
   def _log(self, msg):
     log.debug('[process:%5s=%s]: %s' % (self._pid, self.name(), msg))
+
+  def _statsd_endpoint(self):
+    (statsd_host, statsd_port) = self._statsd.split(":")
+    return tuple(statsd_host, int(statsd_port))
 
   def _getpwuid(self):
     """Returns a tuple of the user (i.e. --user) and current user."""
@@ -120,11 +128,23 @@ class ProcessBase(object):
     self._log("child state transition [%s] <= %s" % (self.ckpt_file(), msg))
     self._ckpt.write(msg)
 
+  def _statsd_write(self, process_status):
+    state_name = ProcessState._VALUES_TO_NAMES[process_status.state]
+    metric_name = "%s.%s" % (process_status.process, state_name)
+    statsd_data = "%s:1|c" % metric_name
+    try:
+      statsd_sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+      statsd_sock.sendto(statsd_data, self._statsd_endpoint())
+    except Exeption as e:
+      self._log("Failed to write to statsd: %s" % e)
+
   def _write_process_update(self, **kw):
     """Write a process update to the coordinator's checkpoint stream."""
     process_status = ProcessStatus(**kw)
     process_status.seq = self._seq
     process_status.process = self.name()
+    if self._statsd:
+      self._statsd_write(process_status)
     self._ckpt_write(RunnerCkpt(process_status=process_status))
     self._seq += 1
 
