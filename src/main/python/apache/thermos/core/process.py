@@ -135,7 +135,7 @@ class ProcessBase(object):
     try:
       statsd_sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
       statsd_sock.sendto(statsd_data, self._statsd_endpoint())
-    except Exeption as e:
+    except Exception as e:
       self._log("Failed to write to statsd: %s" % e)
 
   def _write_process_update(self, **kw):
