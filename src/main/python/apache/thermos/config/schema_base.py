@@ -60,7 +60,7 @@ class Process(Struct):
   min_duration  = Default(Integer, 5)      # integer seconds
   final         = Default(Boolean, False)  # if this process should be a finalizing process
                                            # that should always be run after regular processes
-
+  statsd        = String                   # statsd end-point "ip:port"
 
 class Task(Struct):
   name = Default(String, '{{processes[0].name}}')
