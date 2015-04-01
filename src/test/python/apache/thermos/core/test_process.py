@@ -17,6 +17,7 @@ import os
 import pwd
 import random
 import time
+import socket
 
 import mock
 import pytest
@@ -185,3 +186,19 @@ def test_cloexec():
 
   assert run_with_class(TestWithoutCloexec) == 0
   assert run_with_class(TestProcess) != 0
+
+@mock.patch('socket.socket')
+@mock.patch('socket._socketobject.sendto')
+def test_statsd_write(*mocks):
+  with temporary_dir() as td:
+    taskpath = make_taskpath(td)
+    sandbox = setup_sandbox(td, taskpath)
+    statsd_tuple = ('127.0.0.1', 8125)
+
+    p = TestProcess('process', 'echo hello world', 0, taskpath, sandbox, statsd='127.0.0.1:8125')
+    p.start()
+    wait_for_rc(taskpath.getpath('process_checkpoint'))
+
+    assert socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+    assert socket._socketobject.sendto("process.SUCCESS:1|c", statsd_tuple)
+
