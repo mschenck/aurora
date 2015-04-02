@@ -108,7 +108,7 @@ class ProcessBase(object):
 
   def _statsd_endpoint(self):
     (statsd_host, statsd_port) = self._statsd.split(":")
-    return tuple(statsd_host, int(statsd_port))
+    return (statsd_host, int(statsd_port))
 
   def _getpwuid(self):
     """Returns a tuple of the user (i.e. --user) and current user."""
