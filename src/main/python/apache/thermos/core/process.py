@@ -107,7 +107,7 @@ class ProcessBase(object):
     log.debug('[process:%5s=%s]: %s' % (self._pid, self.name(), msg))
 
   def _statsd_endpoint(self):
-    (statsd_host, statsd_port) = self._statsd.split(":")
+    (statsd_host, statsd_port) = str(self._statsd).split(":")
     return (statsd_host, int(statsd_port))
 
   def _getpwuid(self):
@@ -162,6 +162,9 @@ class ProcessBase(object):
   def pid(self):
     """pid of the coordinator"""
     return self._pid
+
+  def statsd(self):
+    return self._statsd
 
   def rebind(self, pid, fork_time):
     """rebind Process to an existing coordinator pid without forking"""

@@ -695,7 +695,8 @@ class TaskRunner(object):
       self._sandbox,
       self._user,
       chroot=self._chroot,
-      fork=close_ckpt_and_fork)
+      fork=close_ckpt_and_fork,
+      statsd=process.statsd())
 
   def deadlocked(self, plan=None):
     """Check whether a plan is deadlocked, i.e. there are no running/runnable processes, and the
