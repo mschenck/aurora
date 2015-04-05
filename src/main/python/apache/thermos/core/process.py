@@ -130,8 +130,8 @@ class ProcessBase(object):
 
   def _statsd_write(self, process_status):
     state_name = ProcessState._VALUES_TO_NAMES[process_status.state]
-    metric_name = "%s.%s" % (process_status.process, state_name)
-    statsd_data = "%s:+1|g" % metric_name
+    metric_name = "ProcessState.%s.%s" % (self.name(), state_name)
+    statsd_data = "%s:%d|s" % (metric_name, self.pid())
     try:
       statsd_sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
       statsd_sock.sendto(statsd_data, self._statsd_endpoint())

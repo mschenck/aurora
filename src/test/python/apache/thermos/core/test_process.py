@@ -201,7 +201,7 @@ def test_statsd_write(*mocks):
 
     assert p._statsd == '127.0.0.1:8125'
     assert socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-    assert socket._socketobject.sendto("process.FORKED:+1|g", statsd_tuple)
-    assert socket._socketobject.sendto("process.RUNNING:+1|g", statsd_tuple)
-    assert socket._socketobject.sendto("process.SUCCESS:+1|g", statsd_tuple)
+    assert socket._socketobject.sendto("ProcessState.process.FORKED:%d|s" % p._pid, statsd_tuple)
+    assert socket._socketobject.sendto("ProcessState.process.RUNNING:%d|s" % p._pid, statsd_tuple)
+    assert socket._socketobject.sendto("ProcessState.process.SUCCESS:%d|s" % p._pid, statsd_tuple)
 
