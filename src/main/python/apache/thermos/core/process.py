@@ -68,7 +68,8 @@ class ProcessBase(object):
   CONTROL_WAIT_CHECK_INTERVAL = Amount(100, Time.MILLISECONDS)
   MAXIMUM_CONTROL_WAIT = Amount(1, Time.MINUTES)
 
-  def __init__(self, name, cmdline, sequence, pathspec, sandbox_dir, user=None, platform=None, statsd=None):
+  def __init__(self, name, cmdline, sequence, pathspec, sandbox_dir, user=None, platform=None,
+               statsd=None):
     """
       required:
         name        = name of the process
